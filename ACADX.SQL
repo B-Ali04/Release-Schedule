@@ -129,9 +129,8 @@ SGASTDN as (
         SGBSTDN.SGBSTDN_ADMT_CODE as SGBSTDN_ADMT_CODE,
         SGBSTDN.SGBSTDN_DEPT_CODE as SGBSTDN_DEPT_CODE,
         SGBSTDN.SGBSTDN_PROGRAM_1 as SGBSTDN_PROGRAM_1,
-        f_class_calc_fnc(SGBSTDN.SGBSTDN_PIDM,SGBSTDN.SGBSTDN_LEVL_CODE,
-        SGBSTDN.SGBSTDN_TERM_CODE_EFF) as Class_Code,
-        f_Get_desc_fnc('STVSTST',SGBSTDN.SGBSTDN_STST_CODE, 30) as SGBSTDN_STST_DESC,
+        f_class_calc_fnc(SGBSTDN.SGBSTDN_PIDM, SGBSTDN.SGBSTDN_LEVL_CODE, SGBSTDN.SGBSTDN_TERM_CODE_EFF) as SGBSTDN_CLASS_CODE,
+        f_Get_desc_fnc('STVSTST', SGBSTDN.SGBSTDN_STST_CODE, 30) as SGBSTDN_STST_DESC,
         f_Get_desc_fnc('STVLEVL', SGBSTDN.SGBSTDN_LEVL_CODE, 30) as SGBSTDN_LEVL_DESC,
         f_Get_desc_fnc('STVSTYP', SGBSTDN.SGBSTDN_STYP_CODE, 30) as SGBSTDN_STYP_DESC,
         f_Get_desc_fnc('STVDEGC', SGBSTDN.SGBSTDN_DEGC_CODE_1, 30) as SGBSTDN_DEGC_DESC,
@@ -178,7 +177,9 @@ SHAGPAR as (
         SHRLGPA.SHRLGPA_HOURS_ATTEMPTED as SHRLGPA_HOURS_ATTEMPTED,
         SHRLGPA.SHRLGPA_HOURS_EARNED as SHRLGPA_HOURS_EARNED,
         SHRLGPA.SHRLGPA_GPA_HOURS as SHRLGPA_GPA_HOURS,
-        SHRLGPA.SHRLGPA_GPA as SHRLGPA_GPA
+        SHRLGPA.SHRLGPA_GPA as SHRLGPA_GPA,
+        trunc(SHRTGPA.SHRTGPA_GPA,3) as SHRTGPA_SEMESTER_GPA,
+        trunc(SHRLGPA.SHRLGPA_GPA,3) as SHRLGPA_CUMULATIVE_GPA
 
     from
         SHRTGPA SHRTGPA
@@ -195,7 +196,6 @@ SHAGPAR as (
 
     where
         SHRTGPA.SHRTGPA_GPA_TYPE_IND = 'I'
-
     )
 
 select
@@ -205,20 +205,30 @@ select
     SPRIDEN.SPRIDEN_FIRST_NAME as First_Name,
     GOREMAL.GORADID_ADDITIONAL_ID as SUID,
     SGBSTDN.SGBSTDN_STYP_CODE as Reg_Type,
-    SGBSTDN.SGBSTDN_STST_CODE as STST_Code
-
-        f_Get_desc_fnc('STVSTST',SGBSTDN.SGBSTDN_STST_CODE, 30) as SGBSTDN_STST_DESC,
-        f_Get_desc_fnc('STVLEVL', SGBSTDN.SGBSTDN_LEVL_CODE, 30) as SGBSTDN_LEVL_DESC,
-        f_Get_desc_fnc('STVSTYP', SGBSTDN.SGBSTDN_STYP_CODE, 30) as SGBSTDN_STYP_DESC,
-        f_Get_desc_fnc('STVDEGC', SGBSTDN.SGBSTDN_DEGC_CODE_1, 30) as SGBSTDN_DEGC_DESC,
-        f_Get_desc_fnc('STVMAJR', SGBSTDN.SGBSTDN_MAJR_CODE_1, 30) as SGBSTDN_MAJR_DESC,
-        f_Get_desc_fnc('STVMAJR', SGBSTDN.SGBSTDN_MAJR_CODE_MINR_1, 30) as SGBSTDN_MINR_1_DESC,
-        f_Get_desc_fnc('STVMAJR', SGBSTDN.SGBSTDN_MAJR_CODE_MINR_1_2, 30) as SGBSTDN_MINR_1_2_DESC,
-        f_Get_desc_fnc('STVMAJR', SGBSTDN.SGBSTDN_MAJR_CODE_CONC_1, 30) as SGBSTDN_CONC_DESC,
-        f_Get_desc_fnc('STVRESD', SGBSTDN.SGBSTDN_RESD_CODE, 30) as SGBSTDN_RESD_DESC,
-        f_Get_desc_fnc('STVADMT', SGBSTDN.SGBSTDN_ADMT_CODE, 30) as SGBSTDN_ADMT_DESC,
-        f_Get_desc_fnc('STVDEPT', SGBSTDN.SGBSTDN_DEPT_CODE, 30) as SGBSTDN_DEPT_DESC,
-        f_Get_desc_fnc('STVCLAS', f_class_calc_fnc(SGBSTDN.SGBSTDN_PIDM,SGBSTDN.SGBSTDN_LEVL_CODE, SGBSTDN.SGBSTDN_TERM_CODE_EFF), 30) as Class_Desc
+    SGBSTDN.SGBSTDN_STST_CODE as STST_Code,
+    SGBSTDN.SGBSTDN_MAJR_DESC as Program_Of_Study,
+    SGBSTDN.SGBSTDN_DEGC_DESC as Degree_Program,
+    SGBSTDN.SGBSTDN_EXP_GRAD_DATE as Exp_Grad_Date,
+    SHRTGPA.SHRTGPA_SEMESTER_GPA as Semester_GPA,
+    SHRTGPA.SHRLGPA_GPA_HOURS as GPA_Hours,
+    SHRTGPA.SHRLGPA_CUMULATIVE_GPA as Cumulative_GPA,
+    SGBSTDN.SGBSTDN_EXP_GRAD_DATE Exp_Grad_Date,
+    case
+        when
+        exists(select * from SGRSATT
+        where SGRSATT.SGRSATT_PIDM = SPRIDEN.SPRIDEN_PIDM
+        and SGRSATT.SGRSATT_TERM_CODE_EFF = STVTERM.STVTERM_CODE
+        and SGRSATT.SGRSATT_ATTS_CODE in ('LHON','UHON', 'HONR'))
+            then 'Honors Student'
+         else ''
+    end Honors_Student,
+    /*
+    case
+        when SGRSATT.SGRSATT_ATTS_CODE in ('LHON','UHON', 'HONR') then 'Honors Student'
+        else ''
+    end Honors_Student,
+    */
+    GOREMAL.GOREMAL_EMAIL_ADDRESS as Email_Address
 
 from
     STVTERM STVTERM
@@ -247,6 +257,45 @@ where
 
         and 'Y' = f_registered_this_term(SPRIDEN.SPRIDEN_PIDM, STVTERM.STVTERM_CODE)
         )
+/*
+acad01
+
+and exists(select * from shrttrm
+    where SHRTTRM_PIDM = SPRIDEN.SPRIDEN_PIDM
+    and SHRTTRM.SHRTTRM_TERM_CODE = (select max(SHRTTRM_TERM_CODE)
+                                         from SHRTTRM SHRTTRMX
+                                         where SHRTTRMX.SHRTTRM_PIDM = SPRIDEN.SPRIDEN_PIDM
+                                         and SHRTTRMX.SHRTTRM_TERM_CODE < STVTERM.STVTERM_CODE)
+    and SHRTTRM.SHRTTRM_ASTD_CODE_END_OF_TERM like 'P%'
+    )
+*/
+
+/*
+acad03
+
+and (
+    (
+        SHRLGPA_GPA < 2.000
+        and SHRLGPA_HOURS_EARNED > 60
+    )
+    or(
+        SHRLGPA_GPA < 1.850
+        and SHRLGPA_HOURS_EARNED > 30
+        and SHRLGPA_HOURS_EARNED <= 60
+    )
+    or(
+        SHRLGPA_GPA < 1.700
+        and SHRLGPA_HOURS_EARNED < 30
+        and SHRLGPA_HOURS_EARNED >= 0
+    )
+    or(
+        SHRLGPA_GPA < 2.000
+        and SGBSTDN.SGBSTDN_DEGC_CODE_1 = 'AAS'
+    )
+)
+
+*/
+
 
 --$addfilter
 
@@ -256,4 +305,3 @@ where
 
 
 --$endorder
-
