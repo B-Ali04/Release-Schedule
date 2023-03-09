@@ -1,6 +1,6 @@
 with SPAIDEN as
 (
-    select
+    SELECT
         SPRIDEN.SPRIDEN_ID as SPRIDEN_ID,
         SPRIDEN.SPRIDEN_PIDM as SPRIDEN_PIDM,
         SPRIDEN.SPRIDEN_LAST_NAME as SPRIDEN_LAST_NAME,
@@ -9,19 +9,19 @@ with SPAIDEN as
         SPRIDEN.SPRIDEN_SEARCH_LAST_NAME as SPRIDEN_SEARCH_LAST_NAME,
         SPRIDEN.SPRIDEN_SEARCH_FIRST_NAME as SPRIDEN_SEARCH_FIRST_NAME,
         SPRIDEN.SPRIDEN_SEARCH_MI as SPRIDEN_SEARCH_MI,
-        f_format_name(SPRIDEN.SPRIDEN_PIDM, 'LFMI') as SPRIDEN_LEGAL_NAME        
+        f_format_name(SPRIDEN.SPRIDEN_PIDM, 'LFMI') as SPRIDEN_LEGAL_NAME
 
-    from
+    FROM
         SPRIDEN SPRIDEN
 
-    where
-        SPRIDEN_NTYP_CODE is null
-        AND SPRIDEN_CHANGE_IND is null
+    WHERE
+        SPRIDEN_NTYP_CODE IS NULL
+        AND SPRIDEN_CHANGE_IND IS NULL
     ),
 
 SPAPERS as
 (
-    select
+    SELECT
         SPBPERS.SPBPERS_PIDM,
         SPBPERS.SPBPERS_SSN,
         SPBPERS.SPBPERS_BIRTH_DATE,
@@ -29,39 +29,39 @@ SPAPERS as
         SPBPERS.SPBPERS_PREF_FIRST_NAME,
         SPBPERS.SPBPERS_CITZ_CODE,
         SPBPERS_ETHN_CDE,
-        case
-            when SPBPERS.SPBPERS_CITZ_CODE = 'Y' then 'United States'
-            else (select STVNATN_NATION
-                 from STVNATN
-                 where STVNATN_CODE = nvl(GOBINTL.GOBINTL_NATN_CODE_LEGAL, GOBINTL.GOBINTL_NATN_CODE_BIRTH))
-            end as SPBPERS_CITZ_COUNTRY,
+        CASE
+            WHEN SPBPERS.SPBPERS_CITZ_CODE = 'Y' THEN 'United States'
+            ELSE (SELECT STVNATN_NATION
+                 FROM STVNATN
+                 WHERE STVNATN_CODE = NVL(GOBINTL.GOBINTL_NATN_CODE_LEGAL, GOBINTL.GOBINTL_NATN_CODE_BIRTH))
+            END AS SPBPERS_CITZ_COUNTRY,
         SPBPERS.SPBPERS_GNDR_CODE
 
-   from
+   FROM
         SPBPERS SPBPERS
 
-        left outer join GOBINTL GOBINTL on GOBINTL.GOBINTL_PIDM = SPBPERS.SPBPERS_PIDM
+        LEFT OUTER JOIN GOBINTL GOBINTL ON GOBINTL.GOBINTL_PIDM = SPBPERS.SPBPERS_PIDM
    ),
 
 GOARACE as
 (
-    select
+    SELECT
         GORPRAC.GORPRAC_PIDM,
         GORPRAC.GORPRAC_RACE_CDE,
-        (listagg(GORPRAC.GORPRAC_RACE_CDE,', ') within group (order by GORPRAC.GORPRAC_RACE_CDE)) as GORRACE_RACE_CDE,
-        (listagg(GORRACE.GORRACE_DESC,', ') within group (order by GORRACE.GORRACE_DESC)) as GORRACE_DESC
+        (LISTAGG(GORPRAC.GORPRAC_RACE_CDE,', ') WITHIN GROUP (ORDER BY GORPRAC.GORPRAC_RACE_CDE)) as GORRACE_RACE_CDE,
+        (LISTAGG(GORRACE.GORRACE_DESC,', ') WITHIN GROUP (ORDER BY GORRACE.GORRACE_DESC)) as GORRACE_DESC
 
-    from
+    FROM
         GORPRAC GORPRAC
-        left outer join GORRACE GORRACE ON GORRACE.GORRACE_RACE_CDE = GORPRAC.GORPRAC_RACE_CDE
+        LEFT OUTER JOIN GORRACE GORRACE ON GORRACE.GORRACE_RACE_CDE = GORPRAC.GORPRAC_RACE_CDE
 
-    group by
+    GROUP BY
         GORPRAC.GORPRAC_PIDM,
         GORPRAC.GORPRAC_RACE_CDE
     ),
 
 TUIADDR as (
-    select
+    SELECT
         SPRADDR.SPRADDR_PIDM,
         SPRADDR.SPRADDR_ATYP_CODE,
         SPRADDR.SPRADDR_SEQNO,
@@ -77,28 +77,28 @@ TUIADDR as (
         f_get_desc_fnc('STVCNTY', SPRADDR.SPRADDR_ATYP_CODE, 30) as SPRADDR_ATYP_DESC,
         f_get_desc_fnc('STVCNTY', SPRADDR.SPRADDR_CNTY_CODE, 30) as SPRADDR_CNTY_DESC
 
-    from
+    FROM
     SPRADDR SPRADDR
 
-    where
-    SPRADDR.SPRADDR_ATYP_CODE in ('MA','PA','PR')
-    and SPRADDR.SPRADDR_STATUS_IND is null
-    and SPRADDR.SPRADDR_ATYP_CODE = 'PR'
-    and SPRADDR.SPRADDR_VERSION = (select max(SPRADDR_VERSION)
-                                  from SPRADDR SPRADDRX
-                                  where SPRADDRX.SPRADDR_PIDM = SPRADDR.SPRADDR_PIDM
-                                  and SPRADDRX.SPRADDR_ATYP_CODE in ('MA','PA','PR')
-                                  and SPRADDRX.SPRADDR_STATUS_IND is null)
-    and SPRADDR.SPRADDR_SURROGATE_ID = (select max(SPRADDR_SURROGATE_ID)
-                                       from SPRADDR SPRADDRX
-                                       where SPRADDRX.SPRADDR_PIDM = SPRADDR.SPRADDR_PIDM
-                                       and SPRADDRX.SPRADDR_ATYP_CODE in ('MA','PA','PR')
-                                       and SPRADDRX.SPRADDR_STATUS_IND is null)
+    WHERE
+    SPRADDR.SPRADDR_ATYP_CODE IN ('MA','PA','PR')
+    AND SPRADDR.SPRADDR_STATUS_IND IS NULL
+    AND SPRADDR.SPRADDR_ATYP_CODE = 'PR'
+    AND SPRADDR.SPRADDR_VERSION = (SELECT MAX(SPRADDR_VERSION)
+                                  FROM SPRADDR SPRADDRX
+                                  WHERE SPRADDRX.SPRADDR_PIDM = SPRADDR.SPRADDR_PIDM
+                                  AND SPRADDRX.SPRADDR_ATYP_CODE IN ('MA','PA','PR')
+                                  AND SPRADDRX.SPRADDR_STATUS_IND IS NULL)
+    AND SPRADDR.SPRADDR_SURROGATE_ID = (SELECT MAX(SPRADDR_SURROGATE_ID)
+                                       FROM SPRADDR SPRADDRX
+                                       WHERE SPRADDRX.SPRADDR_PIDM = SPRADDR.SPRADDR_PIDM
+                                       AND SPRADDRX.SPRADDR_ATYP_CODE IN ('MA','PA','PR')
+                                       AND SPRADDRX.SPRADDR_STATUS_IND IS NULL)
     ),
 
 SPATELE as (
 
-    select
+    SELECT
         SPRTELE.SPRTELE_PIDM as SPRTELE_PIDM,
         SPRTELE.SPRTELE_TELE_CODE as SPRTELE_TELE_CODE,
         SPRTELE.SPRTELE_PHONE_AREA as SPRTELE_PHONE_AREA,
@@ -107,16 +107,16 @@ SPATELE as (
         SPRTELE.SPRTELE_VERSION as SPRTELE_VERSION,
         f_get_desc_fnc('STVTELE', SPRTELE.SPRTELE_TELE_CODE, 30) as SPRTELE_TELE_DESC
 
-    from
+    FROM
         SPRTELE SPRTELE
 
-    where
-         SPRTELE.SPRTELE_SURROGATE_ID = (select max(SPRTELE_SURROGATE_ID)
-                                            from SPRTELE SPRTELEX
-                                            where SPRTELEX.SPRTELE_PIDM = SPRTELE.SPRTELE_PIDM
-                                            and SPRTELEX.SPRTELE_STATUS_IND is null)
+    WHERE
+         SPRTELE.SPRTELE_SURROGATE_ID = (SELECT MAX(SPRTELE_SURROGATE_ID)
+                                            FROM SPRTELE SPRTELEX
+                                            WHERE SPRTELEX.SPRTELE_PIDM = SPRTELE.SPRTELE_PIDM
+                                            AND SPRTELEX.SPRTELE_STATUS_IND IS NULL)
     ),
-    
+
 SOREMAL as
 (
     select
@@ -130,24 +130,24 @@ SOREMAL as
         GORADID.GORADID_ADID_CODE,
         GOBTPAC_EXTERNAL_USER --esfid
 
-    from
+    FROM
         GOREMAL GOREMAL
 
-        left outer join GORADID GORADID on GORADID.GORADID_PIDM = GOREMAL.GOREMAL_PIDM
-             and GORADID.GORADID_ADID_CODE = 'SUID'
-        left outer join GOBUMAP GOBUMAP on GOBUMAP.GOBUMAP_PIDM = GOREMAL.GOREMAL_PIDM
-        left outer join GOBTPAC GOBTPAC on GOBTPAC.GOBTPAC_PIDM = GOREMAL.GOREMAL_PIDM
+        LEFT OUTER JOIN GORADID GORADID ON GORADID.GORADID_PIDM = GOREMAL.GOREMAL_PIDM
+             AND GORADID.GORADID_ADID_CODE = 'SUID'
+        LEFT OUTER JOIN GOBUMAP GOBUMAP ON GOBUMAP.GOBUMAP_PIDM = GOREMAL.GOREMAL_PIDM
+        LEFT OUTER JOIN GOBTPAC GOBTPAC ON GOBTPAC.GOBTPAC_PIDM = GOREMAL.GOREMAL_PIDM
 
-    where
+    WHERE
         GOREMAL.GOREMAL_EMAL_CODE = 'SU'
-        and GOREMAL.GOREMAL_STATUS_IND = 'A'
-        and GOREMAL.GOREMAL_PREFERRED_IND = 'Y'
-        and GORADID.GORADID_ADID_CODE = 'SUID'
+        AND GOREMAL.GOREMAL_STATUS_IND = 'A'
+        AND GOREMAL.GOREMAL_PREFERRED_IND = 'Y'
+        AND GORADID.GORADID_ADID_CODE = 'SUID'
     ),
 
 SGASTDN as
 (
-    select
+    SELECT
         SGBSTDN.SGBSTDN_PIDM as SGBSTDN_PIDM,
         SGBSTDN.SGBSTDN_TERM_CODE_EFF as SGBSTDN_TERM_CODE_EFF,
         SGBSTDN.SGBSTDN_STST_CODE as SGBSTDN_STST_CODE,
@@ -185,13 +185,13 @@ SGASTDN as
         f_Get_desc_fnc('STVTERM', SGBSTDN.SGBSTDN_TERM_CODE_GRAD, 30) as SGBSTDN_GRAD_TERM_DESC,
         f_Get_desc_fnc('STVCLAS', f_class_calc_fnc(SGBSTDN.SGBSTDN_PIDM,SGBSTDN.SGBSTDN_LEVL_CODE, SGBSTDN.SGBSTDN_TERM_CODE_EFF), 30) as SGBSTDN_CLAS_DESC
 
-   from
+   FROM
         SGBSTDN SGBSTDN
    ),
 
 SGAADVR as
 (
-    select
+    SELECT
         SGRADVR.SGRADVR_PIDM,
 --        f_format_name(SGRADVR.SGRADVR_PIDM, 'LF30') as SGRADVR_NAME,
         SGRADVR.SGRADVR_TERM_CODE_EFF,
@@ -200,33 +200,33 @@ SGAADVR as
         SGRADVR.SGRADVR_PRIM_IND as SGRADVR_PRIM_IND,
         SGRADVR.SGRADVR_ACTIVITY_DATE as SGRADVR_ACTIVITY_DATE,
         SGRADVR.SGRADVR_SURROGATE_ID as SGRADVR_SURROGATE_ID,
-        f_format_name(SGRADVR.SGRADVR_ADVR_PIDM, 'LF30') as SGRADVR_ADVR_NAME,        
-        f_get_desc_fnc('STVADVR', SGRADVR_ADVR_CODE , 30) as SGRADVR_ADVR_DESC        
+        f_format_name(SGRADVR.SGRADVR_ADVR_PIDM, 'LF30') as SGRADVR_ADVR_NAME,
+        f_get_desc_fnc('STVADVR', SGRADVR_ADVR_CODE , 30) as SGRADVR_ADVR_DESC
 
-    from
+    FROM
         SGRADVR SGRADVR
 
-    where
+    WHERE
         SGRADVR.SGRADVR_PRIM_IND = 'Y'
-        and SGRADVR.SGRADVR_TERM_CODE_EFF = (select max(SGRADVR_TERM_CODE_EFF)
-                                            from SGRADVR SGRADVRX
-                                            where SGRADVRX.SGRADVR_PIDM = SGRADVR.SGRADVR_PIDM
-                                            and SGRADVRX.SGRADVR_PRIM_IND = 'Y')
-        and SGRADVR.SGRADVR_SURROGATE_ID = (select max(SGRADVR_SURROGATE_ID)
-                                           from SGRADVR SGRADVRX
-                                           where SGRADVRX.SGRADVR_PIDM = SGRADVR.SGRADVR_PIDM
-                                           and SGRADVRX.SGRADVR_TERM_CODE_EFF = SGRADVR.SGRADVR_TERM_CODE_EFF
-                                           and SGRADVRX.SGRADVR_PRIM_IND = 'Y')
+        AND SGRADVR.SGRADVR_TERM_CODE_EFF = (SELECT MAX(SGRADVR_TERM_CODE_EFF)
+                                            FROM SGRADVR SGRADVRX
+                                            WHERE SGRADVRX.SGRADVR_PIDM = SGRADVR.SGRADVR_PIDM
+                                            AND SGRADVRX.SGRADVR_PRIM_IND = 'Y')
+        AND SGRADVR.SGRADVR_SURROGATE_ID = (SELECT MAX(SGRADVR_SURROGATE_ID)
+                                           FROM SGRADVR SGRADVRX
+                                           WHERE SGRADVRX.SGRADVR_PIDM = SGRADVR.SGRADVR_PIDM
+                                           AND SGRADVRX.SGRADVR_TERM_CODE_EFF = SGRADVR.SGRADVR_TERM_CODE_EFF
+                                           AND SGRADVRX.SGRADVR_PRIM_IND = 'Y')
    ),
 
 SHAGPAR as
 (
-    select
-        case
-            when SFRTHST.SFRTHST_TMST_CODE is not null then SFRTHST.SFRTHST_TMST_CODE
-            when SHRTGPA.SHRTGPA_HOURS_ATTEMPTED >= 12 then 'FT'
-              else 'PT'
-                end as SFRTHST_ENROLLEMENT,
+    SELECT
+        CASE
+            WHEN SFRTHST.SFRTHST_TMST_CODE IS NOT NULL THEN SFRTHST.SFRTHST_TMST_CODE
+            WHEN SHRTGPA.SHRTGPA_HOURS_ATTEMPTED >= 12 THEN 'FT'
+              ELSE 'PT'
+                END AS SFRTHST_ENROLLEMENT,
         SFRTHST.SFRTHST_TERM_CODE as SFRTHST_TERM_CODE,
         SHRTGPA.SHRTGPA_PIDM as SHRTGPA_PIDM,
         SHRTGPA.SHRTGPA_LEVL_CODE as SHRTGPA_LEVL_CODE,
@@ -249,26 +249,26 @@ SHAGPAR as
         trunc(SHRTGPA.SHRTGPA_GPA,3) as SHRTGPA_SEMESTER_GPA,
         trunc(SHRLGPA.SHRLGPA_GPA,3) as SHRLGPA_CUMULATIVE_GPA
 
-    from
+    FROM
         SHRTGPA SHRTGPA
 
-        left outer join SHRLGPA SHRLGPA on SHRLGPA.SHRLGPA_PIDM = SHRTGPA.SHRTGPA_PIDM
-            and SHRLGPA.SHRLGPA_GPA_TYPE_IND = 'I'
-            and SHRLGPA.SHRLGPA_LEVL_CODE = SHRTGPA.SHRTGPA_LEVL_CODE
-        left outer join SFRTHST SFRTHST on SFRTHST.SFRTHST_PIDM = SHRTGPA.SHRTGPA_PIDM
-            and SFRTHST.SFRTHST_TERM_CODE = SHRTGPA.SHRTGPA_TERM_CODE
-            and SFRTHST.SFRTHST_SURROGATE_ID = (select max(SFRTHST_SURROGATE_ID)
-                                               from SFRTHST SFRTHSTX
-                                               where SFRTHSTX.SFRTHST_PIDM = SFRTHST.SFRTHST_PIDM
-                                               and SFRTHSTX.SFRTHST_TERM_CODE = SFRTHST.SFRTHST_TERM_CODE)
+        LEFT OUTER JOIN SHRLGPA SHRLGPA ON SHRLGPA.SHRLGPA_PIDM = SHRTGPA.SHRTGPA_PIDM
+            AND SHRLGPA.SHRLGPA_GPA_TYPE_IND = 'I'
+            AND SHRLGPA.SHRLGPA_LEVL_CODE = SHRTGPA.SHRTGPA_LEVL_CODE
+        LEFT OUTER JOIN SFRTHST SFRTHST ON SFRTHST.SFRTHST_PIDM = SHRTGPA.SHRTGPA_PIDM
+            AND SFRTHST.SFRTHST_TERM_CODE = SHRTGPA.SHRTGPA_TERM_CODE
+            AND SFRTHST.SFRTHST_SURROGATE_ID = (SELECT MAX(SFRTHST_SURROGATE_ID)
+                                               FROM SFRTHST SFRTHSTX
+                                               WHERE SFRTHSTX.SFRTHST_PIDM = SFRTHST.SFRTHST_PIDM
+                                               AND SFRTHSTX.SFRTHST_TERM_CODE = SFRTHST.SFRTHST_TERM_CODE)
 
-    where
+    WHERE
         SHRTGPA.SHRTGPA_GPA_TYPE_IND = 'I'
     ),
 
 SAAADMS as(
 
-    select
+    SELECT
         SARAPPD.SARAPPD_PIDM as SARAPPD_PIDM,
         SARAPPD.SARAPPD_TERM_CODE_ENTRY as SARAPPD_TERM_CODE_ENTRY,
         SARAPPD.SARAPPD_APPL_NO as SARAPPD_APPL_NO,
@@ -286,35 +286,35 @@ SAAADMS as(
         SARAPPD.SARAPPD_GUID as SARAPPD_GUID,
         SARAPPD.SARAPPD_DFE_ADMN_DECN_GUID as SARAPPD_DFE_ADMN_DECN_GUID
 
-    from
+    FROM
         SARAPPD SARAPPD
 
-    where
-        SARAPPD.SARAPPD_SEQ_NO = (select max(SARAPPD_SEQ_NO)
-                                 from SARAPPD SARAPPDX
-                                 where SARAPPDX.SARAPPD_PIDM = SARAPPD.SARAPPD_PIDM)
-        and SARAPPD.SARAPPD_APPL_NO = (select max(SARAPPD_APPL_NO)
-                                 from SARAPPD SARAPPDX
-                                 where SARAPPDX.SARAPPD_PIDM = SARAPPD.SARAPPD_PIDM)
+    WHERE
+        SARAPPD.SARAPPD_SEQ_NO = (SELECT MAX(SARAPPD_SEQ_NO)
+                                 FROM SARAPPD SARAPPDX
+                                 WHERE SARAPPDX.SARAPPD_PIDM = SARAPPD.SARAPPD_PIDM)
+        AND SARAPPD.SARAPPD_APPL_NO = (SELECT MAX(SARAPPD_APPL_NO)
+                                 FROM SARAPPD SARAPPDX
+                                 WHERE SARAPPDX.SARAPPD_PIDM = SARAPPD.SARAPPD_PIDM)
     ),
 
 ROAHSCH as(
-    select
+    SELECT
         SORHSCH.SORHSCH_PIDM,
         SORHSCH.SORHSCH_SBGI_CODE as SGBI_CODE,
         SORHSCH.SORHSCH_GRADUATION_DATE,
         SORHSCH.SORHSCH_GPA,
         SORHSCH.SORHSCH_TRANS_RECV_DATE,
         SORHSCH.SORHSCH_SURROGATE_ID,
-        f_get_desc_fnc('STVSBGI', SORHSCH_SBGI_CODE, 30) as SORHSCH_SGBI_DESC        
+        f_get_desc_fnc('STVSBGI', SORHSCH_SBGI_CODE, 30) as SORHSCH_SGBI_DESC
 
-    from
+    FROM
         SORHSCH SORHSCH
     ),
 
 SOAPCOL as (
 
-    select
+    SELECT
         SORPCOL.SORPCOL_PIDM,
         SORPCOL.SORPCOL_SBGI_CODE,
         SORPCOL.SORPCOL_TRANS_RECV_DATE,
@@ -331,23 +331,23 @@ SOAPCOL as (
         SORPCOL.SORPCOL_GUID,
         SORPCOL.SORPCOL_GPA,
         f_get_desc_fnc('STVSBGI', SORPCOL.SORPCOL_SBGI_CODE, 30) as SORPCOL_SGBI_DESC,
-        case
-          when SORPCOL.SORPCOL_ADMR_CODE is null then ''
-            else f_get_desc_fnc('STVADMR', SORPCOL.SORPCOL_ADMR_CODE, 30)
-              end as SORPCOL_ADMR_DESC        
+        CASE
+          WHEN SORPCOL.SORPCOL_ADMR_CODE IS NULL THEN ''
+            ELSE F_GET_DESC_FNC('STVADMR', SORPCOL.SORPCOL_ADMR_CODE, 30)
+              END AS SORPCOL_ADMR_DESC
 
-    from
+    FROM
         SORPCOL SORPCOL
 
-    where
-        SORPCOL.SORPCOL_SURROGATE_ID = (select max(SORPCOL_SURROGATE_ID)
-                                       from SORPCOL SORPCOLX
-                                       where SORPCOLX.SORPCOL_PIDM = SORPCOL.SORPCOL_PIDM)
+    WHERE
+        SORPCOL.SORPCOL_SURROGATE_ID = (SELECT MAX(SORPCOL_SURROGATE_ID)
+                                       FROM SORPCOL SORPCOLX
+                                       WHERE SORPCOLX.SORPCOL_PIDM = SORPCOL.SORPCOL_PIDM)
    ),
 
 SHADEGR as
 (
-    select
+    SELECT
         SHRDGMR_PIDM,
         SHRDGMR_SEQ_NO,
         SHRDGMR_DEGC_CODE,
@@ -366,10 +366,10 @@ SHADEGR as
         f_get_desc_fnc('STVLEVL', SHRDGMR_LEVL_CODE, 30) as SHRDGMR_LEVL_DESC,
         f_get_desc_fnc('STVMAJR', SHRDGMR_MAJR_CODE_1, 30) as SHRDGMR_MAJR_DESC
 
-   from
+   FROM
         SHRDGMR SHRDGMR
    ),
-   
+
 DATA_VIEW_1 as
 (
     select
@@ -387,16 +387,13 @@ DATA_VIEW_1 as
         SPBPERS_SEX as SEX_CODE,
         SPBPERS_ETHN_CDE as Ethn_Code,
         f_get_desc_fnc('STVETHN', SPBPERS_ETHN_CDE, 30) as Ethnicity,
-        case
-          when SPBPERS_ETHN_CDE in (2,3,4,5,6,7,9,10) then 'Y'
-            else 'N'
-              end as SPBPERS_SICAS_HISP_ORIGIN,
-
-        GORPRAC_PIDM,
+        CASE
+          WHEN SPBPERS_ETHN_CDE IN (2,3,4,5,6,7,9,10) THEN 'Y'
+            ELSE 'N'
+              END AS SPBPERS_SICAS_HISP_ORIGIN,
         GORPRAC_RACE_CDE,
         GORRACE_RACE_CDE,
         GORRACE_DESC,
-
         SPRIDEN_SEARCH_LAST_NAME as LNAME_SORT,
         SPRIDEN_SEARCH_FIRST_NAME as FNAME_SORT
 
@@ -409,6 +406,7 @@ from
         LEFT OUTER JOIN SPAPERS SPBPERS ON SPBPERS.SPBPERS_PIDM = SPRIDEN.SPRIDEN_PIDM
         LEFT OUTER JOIN STVETHN STVETHN on STVETHN.STVETHN_CODE = SPBPERS.SPBPERS_ETHN_CDE
 
+-- RE-ENABLE SECTION
 where
         EXISTS(SELECT *
                   FROM SFRSTCR
@@ -420,7 +418,7 @@ where
 
 DATA_VIEW_2 as
 (
-    select
+    SELECT
         SPRIDEN_PIDM as SPRIDEN_PIDM,
         SPRADDR_ATYP_CODE as ATYP_CODE,
         SPRADDR_ATYP_DESC as ATYP_DESC,
@@ -438,16 +436,16 @@ DATA_VIEW_2 as
         SPRTELE_TELE_CODE,
         SPRTELE.SPRTELE_PHONE_AREA as SPRTELE_PHONE_AREA,
         SPRTELE.SPRTELE_PHONE_NUMBER as SPRTELE_PHONE_NUMBER
-        
-   from
+
+   FROM
         SPAIDEN SPRIDEN
         LEFT OUTER JOIN TUIADDR SPRADDR ON SPRADDR.SPRADDR_PIDM = SPRIDEN.SPRIDEN_PIDM
         LEFT OUTER JOIN SPATELE SPRTELE ON SPRTELE.SPRTELE_PIDM = SPRIDEN.SPRIDEN_PIDM
-    ),
-    
+   ),
+
 DATA_VIEW_3 as
 (
-    select
+    SELECT
         STVTERM_CODE as Term_Code,
         STVTERM_DESC as Semester,
         SGBSTDN_PIDM,
@@ -479,13 +477,15 @@ from
             AND SHAGPAR.SHRTGPA_LEVL_CODE = SGBSTDN_LEVL_CODE
             AND SHAGPAR.SHRLGPA_LEVL_CODE = SGBSTDN_LEVL_CODE
 
-where
+WHERE
+/*
         EXISTS(SELECT *
                   FROM SFRSTCR
                   WHERE SFRSTCR_PIDM = SGBSTDN_PIDM
                   AND SFRSTCR_RSTS_CODE = 'RE'
                   AND SFRSTCR_TERM_CODE = STVTERM_CODE)
-        AND STVTERM_CODE = '&T'
+                  */
+        STVTERM_CODE = '&T'
         AND SGBSTDN_STST_CODE = 'AS'
         AND SGBSTDN_STYP_CODE <> 'X'
         AND SGBSTDN_MAJR_CODE_1 NOT IN ('SUS')
@@ -500,8 +500,8 @@ DATA_VIEW_4 AS
         SGRADVR_ADVR_DESC as Advisor_Type
 FROM
         SGAADVR SGRADVR
-        
--- PIVOT UNAVAILBE DUE TO MULTIPLE ADVISORS. 
+
+-- PIVOT UNAVAILBE DUE TO MULTIPLE ADVISORS.
 
 WHERE
         SGRADVR.SGRADVR_PRIM_IND = 'Y'
@@ -509,7 +509,7 @@ WHERE
 
 DATA_VIEW_5 as
 (
-    select
+    SELECT
         SARAPPD.SARAPPD_PIDM,
         SARAPPD.SARAPPD_TERM_CODE_ENTRY,
         SARAPPD.SARAPPD_APPL_NO,
@@ -538,23 +538,23 @@ DATA_VIEW_5 as
         SORPCOL_VPDI_CODE,
         SORPCOL_GUID,
         SORPCOL_GPA
-        
-from
+
+FROM
         STVTERM STVTERM
 
         LEFT OUTER JOIN SPAIDEN SPRIDEN ON SPRIDEN_PIDM IS NOT NULL
-        
-        -- admission request 1 : AP/AC STUDENTS
-        left outer join SAAADMS SARAPPD on SARAPPD.SARAPPD_PIDM = SPRIDEN.SPRIDEN_PIDM
 
-        -- admission request 2: HIGH SCHOOL INFORMATION
-        left outer join ROAHSCH SORHSCH on SORHSCH.SORHSCH_PIDM = SPRIDEN.SPRIDEN_PIDM
+        -- AP/AC STUDENTS
+        LEFT OUTER JOIN SAAADMS SARAPPD ON SARAPPD.SARAPPD_PIDM = SPRIDEN.SPRIDEN_PIDM
 
-        -- admission request 2: HIGH SCHOOL TRANSCRIPTS
-        left outer join SOAPCOL SORPCOL on SORPCOL.SORPCOL_PIDM = SPRIDEN.SPRIDEN_PIDM
-             and SORPCOL.SORPCOL_ADMR_CODE = 'HST1'
+        -- HIGH SCHOOL INFORMATION
+        LEFT OUTER JOIN ROAHSCH SORHSCH ON SORHSCH.SORHSCH_PIDM = SPRIDEN.SPRIDEN_PIDM
 
-where
+        -- HIGH SCHOOL TRANSCRIPTS
+        LEFT OUTER JOIN SOAPCOL SORPCOL ON SORPCOL.SORPCOL_PIDM = SPRIDEN.SPRIDEN_PIDM
+             AND SORPCOL.SORPCOL_ADMR_CODE = 'HST1'
+
+WHERE
         STVTERM_CODE = '&T'
         AND SARAPPD_TERM_CODE_ENTRY = STVTERM_CODE
         AND SARAPPD_APDC_CODE IN ('AP', 'AC')
@@ -562,7 +562,7 @@ where
 
 DATA_VIEW_6 as
 (
-    select
+    SELECT
         SHRDGMR_PIDM,
         SHRDGMR_SEQ_NO,
         SHRDGMR_DEGC_CODE,
@@ -580,28 +580,28 @@ DATA_VIEW_6 as
         SHRDGMR_DEGC_DESC,
         SHRDGMR_LEVL_DESC,
         SHRDGMR_MAJR_DESC
-        
-from
+
+FROM
         SHADEGR SHRDGMR
    )
 
-select
+SELECT
         *
 
 -- PII
-from
+FROM
         DATA_VIEW_1 MAIN1
 -- Telephone, Phone Number, & Addressbook
         LEFT OUTER JOIN DATA_VIEW_2 MAIN2 ON MAIN2.SPRIDEN_PIDM = MAIN1.SPRIDEN_PIDM
 
 -- Registrar & Matriculation
         LEFT OUTER JOIN DATA_VIEW_3 MAIN3 ON MAIN3.SGBSTDN_PIDM = MAIN1.SPRIDEN_PIDM
-        
+
 -- Student Advising
 --        LEFT OUTER JOIN DATA_VIEW_4 MAIN4 ON MAIN4.SGRADVR_PIDM = MAIN1.SPRIDEN_PIDM
 
--- Transfer and Admissions        
-        LEFT OUTER JOIN DATA_VIEW_5 MAIN4 ON MAIN4.SARAPPD_PIDM = MAIN1.SPRIDEN_PIDM        
+-- Transfer and Admissions
+        LEFT OUTER JOIN DATA_VIEW_5 MAIN4 ON MAIN4.SARAPPD_PIDM = MAIN1.SPRIDEN_PIDM
 
 -- Degree Atriculation
         LEFT OUTER JOIN DATA_VIEW_6 MAIN4 ON MAIN4.SHRDGMR_PIDM = MAIN1.SPRIDEN_PIDM
@@ -610,7 +610,7 @@ from
 -- Gender Measures
 PIVOT (
       COUNT (1) FOR SEX_CODE IN ('M', 'F')
-)      
+)
 
 -- Race IPED data
 PIVOT (
@@ -647,15 +647,15 @@ pivot (
 pivot (
       count (1) for  in ()
 )
- */    
+ */
 --$addfilter
 
 --$beginorder
 
-where 
+WHERE
 
       EXISTS (
-             SELECT * 
+             SELECT *
              FROM SFRSTCR
              LEFT OUTER JOIN DATA_VIEW_1 MAIN1 ON SPRIDEN_PIDM IS NOT NULL
              WHERE SFRSTCR_PIDM = MAIN1.SPRIDEN_PIDM
@@ -663,9 +663,9 @@ where
              AND SFRSTCR_RSTS_CODE IN ('RE', 'RW')
       )
 
-order by
+ORDER BY
         LNAME_SORT,
         FNAME_SORT
 
 --$endorder
---its ready. 
+--its ready.
