@@ -468,7 +468,15 @@ DATA_VIEW_3 as
         SGBSTDN_MINR_1_2_DESC as Minor_Desc_2,
         SGBSTDN_CONC_DESC as Conc_Desc,
         SGBSTDN_DEGC_DESC as Degree_Program,
-        SGBSTDN_EXP_GRAD_DATE as ExpGradDate
+        SGBSTDN_EXP_GRAD_DATE as ExpGradDate,
+        SHRTGPA_HOURS_ATTEMPTED Semester_HC,
+        SHRTGPA_GPA_HOURS Semester_HP,
+        SHRTGPA_QUALITY_POINTS Semester_Grd_Pts,
+        trunc(SHRTGPA_GPA,3) Semester_GPA,
+        SHRLGPA_HOURS_ATTEMPTED Cumulative_HC,
+        SHRLGPA_GPA_HOURS Cumulative_HP,
+        SHRLGPA_QUALITY_POINTS Cumulative_Grd_Pts,
+        trunc(SHRLGPA_GPA,3) Cumulative_GPA
 
 from
         STVTERM STVTERM
