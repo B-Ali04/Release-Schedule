@@ -59,7 +59,8 @@ GOARACE as
         GORPRAC.GORPRAC_RACE_CDE
     ),
 
-TUIADDR as (
+TUIADDR as 
+(
     SELECT
         SPRADDR.SPRADDR_PIDM,
         SPRADDR.SPRADDR_ATYP_CODE,
@@ -95,8 +96,8 @@ TUIADDR as (
                                            AND SPRADDRX.SPRADDR_STATUS_IND IS NULL)
     ),
 
-SPATELE as (
-
+SPATELE as 
+(
     SELECT
         SPRTELE.SPRTELE_PIDM as SPRTELE_PIDM,
         SPRTELE.SPRTELE_TELE_CODE as SPRTELE_TELE_CODE,
@@ -267,7 +268,6 @@ SHAGPAR as
 
 SAAADMS as
 (
-
     SELECT
         SARAPPD.SARAPPD_PIDM as SARAPPD_PIDM,
         SARAPPD.SARAPPD_TERM_CODE_ENTRY as SARAPPD_TERM_CODE_ENTRY,
@@ -372,7 +372,7 @@ SHADEGR as
    
 DATA_VIEW_1 as
 (
-    select
+    SELECT
         STVTERM_CODE as Term_Code,
         STVTERM_DESC as Semester,
         SPRIDEN_PIDM,
@@ -487,7 +487,6 @@ from
             AND SHAGPAR.SHRLGPA_LEVL_CODE = SGBSTDN_LEVL_CODE
 
 WHERE
-
         EXISTS(SELECT *
                   FROM SFRSTCR
                   WHERE SFRSTCR_PIDM = SGBSTDN_PIDM
